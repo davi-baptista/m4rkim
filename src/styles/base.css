@@ -1,0 +1,283 @@
+/* ═══════════════════════════════════════════
+   BASE — Reset, variáveis e estilos globais
+═══════════════════════════════════════════ */
+
+:root {
+  /* ── Paleta ────────────────────────────────────────────────────── */
+  --bg:            #08080f;
+  --bg-deep:       #04040a;
+  --bg-surface:    #100c1e;
+  --accent:        #7c3aed;
+  --accent-hi:     #a78bfa;
+
+  --gold:          #f59e0b;
+  --gold-glow:     rgba(245, 158, 11, 0.55);
+  --silver:        #94a3b8;
+  --silver-glow:   rgba(148, 163, 184, 0.45);
+  --common:        #60a5fa;
+
+  --text:          #f1f5f9;
+  --text-dim:      rgba(241, 245, 249, 0.42);
+  --text-faint:    rgba(241, 245, 249, 0.16);
+
+  /* ── Legacy aliases (usados nos módulos JS) ───────────────────── */
+  --color-bg:          var(--bg);
+  --color-bg-2:        var(--bg-deep);
+  --color-gold:        var(--gold);
+  --color-silver:      var(--silver);
+  --color-common:      var(--common);
+  --color-text:        var(--text);
+  --color-text-muted:  var(--text-dim);
+
+  /* ── Tipografia ────────────────────────────────────────────────── */
+  --font: 'Segoe UI', system-ui, sans-serif;
+
+  /* ── Transições ────────────────────────────────────────────────── */
+  --t-fast:   0.18s ease;
+  --t-mid:    0.38s ease;
+  --t-spring: 0.52s cubic-bezier(0.34, 1.5, 0.64, 1);
+
+  /* ── Aliases legacy ────────────────────────────────────────────── */
+  --transition-fast:   var(--t-fast);
+  --transition-normal: var(--t-mid);
+  --transition-spring: var(--t-spring);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.16), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(245, 158, 11, 0.10), transparent 28%),
+    radial-gradient(circle at 50% 85%, rgba(96, 165, 250, 0.08), transparent 30%),
+    linear-gradient(180deg, #090812 0%, #05050b 45%, #030309 100%);
+  color: var(--text);
+  font-family: var(--font);
+  overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(167, 139, 250, 0.28), transparent 24%),
+    radial-gradient(circle at 78% 18%, rgba(245, 158, 11, 0.18), transparent 20%),
+    radial-gradient(circle at 50% 70%, rgba(96, 165, 250, 0.12), transparent 24%);
+  filter: blur(32px);
+  opacity: 0.9;
+}
+
+body::after {
+  background:
+    linear-gradient(transparent 0 96%, rgba(255, 255, 255, 0.04) 96% 100%),
+    linear-gradient(90deg, transparent 0 96%, rgba(255, 255, 255, 0.03) 96% 100%);
+  background-size: 100% 24px, 24px 100%;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
+
+/* ─── Screens ──────────────────────────────────────────────────────────────── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity var(--t-mid);
+  z-index: 1;
+}
+
+.screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Banner de prêmio ─────────────────────────────────────────────────────── */
+.prize-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(8, 8, 15, 0.80);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  z-index: 50;
+  transition: opacity 0.3s ease;
+}
+
+.prize-banner span {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Usado pelo viewer para esconder o banner sem JS complexo */
+.prize-banner.viewer-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-copy {
+  width: min(100%, 680px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.hero-kicker {
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(241, 245, 249, 0.40);
+}
+
+.hero-copy h1 {
+  max-width: 12ch;
+  font-size: clamp(32px, 7.2vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.hero-text {
+  max-width: 58ch;
+  color: var(--text-dim);
+  font-size: clamp(14px, 2.6vw, 17px);
+  line-height: 1.55;
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hero-badges span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+/* ─── Flash de raridade ────────────────────────────────────────────────────── */
+#flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0;
+}
+
+#flash.gold   { background: radial-gradient(ellipse at center, rgba(255, 247, 180, 0.92), rgba(245, 158, 11, 0.70)); }
+#flash.silver { background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.88), rgba(148, 163, 184, 0.60)); }
+
+#flash.playing { animation: flashAnim 0.6s ease-out forwards; }
+
+@keyframes flashAnim {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ─── Canvas de partículas ─────────────────────────────────────────────────── */
+#particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ─── Efeito holográfico (overlay CSS) ─────────────────────────────────────── */
+/* Usa hue-rotate para ciclar cores sem nenhuma borda/seam visível,
+   igual ao efeito de armadura encantada do Minecraft. */
+.holo {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 224, 138, 0.20) 22%,
+    rgba(255, 255, 255, 0.03) 42%,
+    rgba(255, 191, 64, 0.22) 60%,
+    rgba(255, 255, 255, 0.04) 78%,
+    rgba(255, 224, 138, 0.18) 100%
+  );
+  background-size: 240% 240%;
+  mix-blend-mode: screen;
+  animation: holoHue 8s linear infinite, holoDrift 6s ease-in-out infinite alternate;
+  transition: opacity var(--t-mid), filter var(--t-mid);
+}
+
+.holo.silver { opacity: 0.10; mix-blend-mode: overlay; }
+.holo.gold   { opacity: 0.22; }
+
+@keyframes holoHue {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+
+@keyframes holoDrift {
+  from { background-position: 0% 50%; transform: translateX(-1.5%); }
+  to   { background-position: 100% 50%; transform: translateX(1.5%); }
+}
+
+/* ─── Glows por raridade ───────────────────────────────────────────────────── */
+.glow-gold   { box-shadow: 0 0 30px var(--gold-glow),   0 0 76px rgba(245, 158, 11, 0.24); }
+.glow-silver { box-shadow: 0 0 18px var(--silver-glow), 0 0 48px rgba(148, 163, 184, 0.14); }
+
+@media (max-width: 700px) {
+  .screen {
+    padding: 14px;
+  }
+
+  .hero-copy {
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+
+  .hero-copy h1 {
+    max-width: 14ch;
+  }
+
+  .hero-text {
+    max-width: 34ch;
+  }
+}

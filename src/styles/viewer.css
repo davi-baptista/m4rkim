@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════
+   VIEWER — Visualizador 3D da carta
+═══════════════════════════════════════════ */
+
+#s-viewer {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.10), transparent 28%),
+    radial-gradient(circle at 50% 55%, rgba(245, 158, 11, 0.08), transparent 24%),
+    #04040a;
+  padding-top: 0; /* banner é ocultado via JS ao abrir o viewer */
+}
+
+/* O viewer-top começa logo no topo já que o banner some */
+.viewer-top {
+  top: 0 !important;
+}
+
+/* ─── Canvas Three.js (ocupa tela toda) ───────────────────────────────────── */
+#three-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  touch-action: none;
+}
+
+/* ─── Barra superior ──────────────────────────────────────────────────────── */
+.viewer-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 72px;
+  padding: 0 20px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(4, 4, 10, 0.90), rgba(4, 4, 10, 0.35), transparent);
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.20);
+  color: #fff;
+}
+
+#viewer-label {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  text-align: right;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Rodapé do viewer ────────────────────────────────────────────────────── */
+.viewer-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+  background: linear-gradient(to top, rgba(4, 4, 10, 0.65), transparent);
+  pointer-events: none;
+}
+
+.viewer-drag-hint {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.20);
+  animation: dragHintFade 5s ease-out forwards;
+}
+
+@keyframes dragHintFade {
+  0%, 55% { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+/* ─── Mensagem de erro (sem servidor local) ───────────────────────────────── */
+.no-server-msg {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  padding: 16px 24px;
+  border-radius: 12px;
+  background: rgba(8, 8, 15, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+  line-height: 1.9;
+  z-index: 20;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.no-server-msg code {
+  display: inline-block;
+  padding: 2px 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--accent-hi);
+  letter-spacing: 1px;
+}
+
+.no-server-msg small {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.45;
+}
+
+@media (max-width: 640px) {
+  .viewer-top {
+    height: 64px;
+    padding: 0 14px 10px;
+  }
+
+  #viewer-label {
+    max-width: 48%;
+    letter-spacing: 2px;
+  }
+
+  .btn-back {
+    padding: 7px 12px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  .viewer-bottom {
+    padding: 16px;
+  }
+
+  .no-server-msg {
+    width: calc(100% - 28px);
+    white-space: normal;
+  }
+}

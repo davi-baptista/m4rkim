@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#080810">
+  <title>M4RKIM - Álbum de Figurinhas</title>
+  <script>
+    document.documentElement.classList.add('app-booting');
+  </script>
+  <style>
+    html.app-booting body {
+      opacity: 0;
+    }
+    html.app-booting *,
+    html.app-booting *::before,
+    html.app-booting *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Autenticação ───────────────────────────────────────────────────────── -->
+  <div class="screen hidden" id="s-auth">
+    <div class="auth-card">
+      <p class="auth-kicker">Álbum M4RKIM 2026</p>
+      <h1 class="auth-title">Colecione.<br>Complete.<br>Ganhe.</h1>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Entrar</button>
+        <button class="auth-tab"        data-tab="register">Criar conta</button>
+      </div>
+
+      <form id="form-login" class="auth-form">
+        <input type="email"    name="email"    placeholder="E-mail"  autocomplete="email"            required>
+        <input type="password" name="password" placeholder="Senha"   autocomplete="current-password" required>
+        <button type="submit">Entrar →</button>
+      </form>
+
+      <form id="form-register" class="auth-form hidden">
+        <input type="email"    name="email"    placeholder="E-mail"                  autocomplete="email"        required>
+        <input type="text"     name="username" placeholder="Username (sem espaços)"  autocomplete="username"     required>
+        <input type="password" name="password" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password" required>
+        <button type="submit">Criar conta →</button>
+      </form>
+
+      <p id="auth-error" class="auth-error"></p>
+    </div>
+  </div>
+
+  <!-- ── Abertura do pacote ────────────────────────────────────────────────── -->
+  <div class="screen hidden" id="s-pack">
+    <div class="pack-scene" id="pack-scene">
+      <div class="pack-body" id="pack-body">
+        <img class="pack-art pack-art-closed" src="/cards/pacote.png"        alt="Pacote M4RKIM fechado">
+        <img class="pack-art pack-art-open"   src="/cards/pacote_aberto.png" alt="Pacote M4RKIM aberto">
+        <div class="pack-peel pack-peel-top"></div>
+      </div>
+
+      <div class="emerging-card" id="emerging-card">
+        <div class="em-back">
+          <img id="em-back-img" src="" alt="Verso da figurinha">
+        </div>
+        <div class="em-face">
+          <img id="em-img" src="" alt="Figurinha">
+          <div class="holo" id="em-holo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mostrado quando os packs do dia já foram abertos -->
+    <div id="pack-exhausted" class="pack-exhausted hidden">
+      <p class="pack-exhausted-title">Você já abriu seus pacotes de hoje</p>
+      <p class="pack-exhausted-sub">Volte amanhã para mais figurinhas ✦</p>
+      <button class="btn-album" id="btn-go-album" style="margin-top:18px">Ver meu álbum</button>
+    </div>
+  </div>
+
+  <!-- ── Cartas reveladas ──────────────────────────────────────────────────── -->
+  <div class="screen hidden" id="s-cards">
+    <div class="cards-header">
+      <p class="cards-title">Suas figurinhas de hoje</p>
+      <p class="cards-subtitle">Álbum M4RKIM 2026</p>
+    </div>
+
+    <div class="cards-row">
+      <div class="card-slot" id="slot-0">
+        <img id="slot-img-0" src="" alt="">
+        <div class="holo"      id="slot-holo-0"></div>
+        <div class="num-badge" id="slot-badge-0"></div>
+        <span class="view3d-label">Ver em 3D →</span>
+      </div>
+      <div class="card-slot" id="slot-1">
+        <img id="slot-img-1" src="" alt="">
+        <div class="holo"      id="slot-holo-1"></div>
+        <div class="num-badge" id="slot-badge-1"></div>
+        <span class="view3d-label">Ver em 3D →</span>
+      </div>
+    </div>
+
+    <div class="cards-footer">
+      <p class="cards-footer-text">Volte amanhã para mais figurinhas</p>
+      <button class="btn-album">Ver meu álbum</button>
+    </div>
+  </div>
+
+  <!-- ── Visualizador 3D ───────────────────────────────────────────────────── -->
+  <div class="screen hidden" id="s-viewer">
+    <canvas id="three-canvas"></canvas>
+    <div class="viewer-top">
+      <button class="btn-back" id="btn-back-viewer">← Voltar</button>
+      <span id="viewer-label"></span>
+    </div>
+    <div class="viewer-bottom">
+      <p class="viewer-drag-hint">Arraste para girar</p>
+    </div>
+  </div>
+
+  <!-- ── Overlay de resgate do demo ───────────────────────────────────────── -->
+  <!-- Aparece sobre s-cards quando o usuário abriu o pack sem cadastro -->
+  <div id="demo-overlay" class="demo-overlay hidden">
+    <div class="demo-overlay-card">
+      <p class="demo-overlay-emoji">✨</p>
+      <h2 class="demo-overlay-title">Suas figurinhas te esperam!</h2>
+      <p class="demo-overlay-body">Crie uma conta para salvar e concorrer ao <span>R$500</span></p>
+      <p class="demo-overlay-timer" id="demo-timer"></p>
+      <button class="btn-demo-primary" id="btn-demo-register">Criar conta →</button>
+      <button class="btn-demo-secondary" id="btn-demo-login">Já tenho conta</button>
+    </div>
+  </div>
+
+  <!-- ── Overlays globais ──────────────────────────────────────────────────── -->
+  <div id="flash"></div>
+  <canvas id="particles"></canvas>
+  <audio id="audio-snippet" preload="none"></audio>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

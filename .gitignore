@@ -1,0 +1,31 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+
+# Variáveis de ambiente (nunca commitar o .env real)
+.env
+!.env.example
+
+# Banco de dados local
+prisma/dev.db
+prisma/dev.db-journal
+prisma/*.db
+
+# Prisma client gerado
+node_modules/.prisma/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

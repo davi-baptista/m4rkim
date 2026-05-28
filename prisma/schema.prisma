@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  username       String   @unique
+  passwordHash   String
+  createdAt      DateTime @default(now())
+  albumCompleted Boolean  @default(false)
+  goldShareBonusClaimed Boolean @default(false)
+
+  demoClaimed    Boolean  @default(false)  // impede reivindicar o pack demo mais de uma vez
+
+  stickers       StickerInstance[]
+  packOpens      PackOpen[]
+  missionClaims  MissionClaim[]
+  claimRequests  PrizeClaimRequest[]
+}
+
+model Campaign {
+  id               String   @id @default("main")
+  startsAt         DateTime?
+  launchAt         DateTime?
+  prizeClaimed     Boolean  @default(false)
+  winnerUserId     String?
+  winnerUsername   String?
+  winnerClaimedAt  DateTime?
+}
+
+model StickerType {
+  id          String   @id @default(cuid())
+  slotNumber  Int      @unique
+  artistName  String
+  title       String?
+  hasSnippet  Boolean  @default(false)
+  snippetUrl  String?
+  createdAt   DateTime @default(now())
+
+  instances StickerInstance[]
+}
+
+model StickerInstance {
+  id               String   @id @default(cuid())
+  serial           String   @unique
+  rarity           String   @default("common")
+  copyNumber       Int?
+  totalCopies      Int?
+  stickerTypeId    String
+  ownerId          String
+  receivedAt       DateTime @default(now())
+  sharedAt         DateTime?
+
+  stickerType StickerType @relation(fields: [stickerTypeId], references: [id], onDelete: Cascade)
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  packOpen    PackOpen?
+
+  // Garante que o mesmo número de cópia não pode ser emitido duas vezes para a mesma carta/raridade
+  @@unique([stickerTypeId, rarity, copyNumber])
+}
+
+model PackOpen {
+  id                String          @id @default(cuid())
+  userId            String
+  dayKey            String
+  openedAt          DateTime        @default(now())
+  stickerInstanceId String          @unique
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stickerInstance StickerInstance @relation(fields: [stickerInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dayKey])
+}
+
+model MissionClaim {
+  id         String      @id @default(cuid())
+  userId     String
+  mission    String
+  dayKey     String
+  createdAt  DateTime    @default(now())
+  metadata   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mission, dayKey])
+}
+
+model PrizeClaimRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  createdAt   DateTime @default(now())
+  socialUrl   String
+  note        String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
