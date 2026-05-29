@@ -48,5 +48,6 @@ export async function getMe(userId) {
     username: user.username,
     createdAt: user.createdAt,
     albumCompleted: user.albumCompleted,
+    goldShareBonusClaimed: user.goldShareBonusClaimed,
   }
 }

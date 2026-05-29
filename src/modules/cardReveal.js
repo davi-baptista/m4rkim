@@ -106,22 +106,25 @@ export function showCardsScreen() {
     setTimeout(() => showDemoOverlay(_onDemoAuthRequested), 900)
   }
 
-  appState.revealed.forEach(({ pack, rCfg }, i) => {
+  // s-cards tem 2 slots fixos no HTML — exibe as primeiras 2 cartas do dia.
+  // Cartas extras (pack bônus) ficam salvas no álbum normalmente.
+  appState.revealed.slice(0, 2).forEach(({ pack, rCfg }, i) => {
     const def    = CARDS_DB[pack.slotNumber] ?? CARDS_DB[1]
     const imgEl  = document.getElementById(`slot-img-${i}`)
     const holoEl = document.getElementById(`slot-holo-${i}`)
     const badge  = document.getElementById(`slot-badge-${i}`)
     const slot   = document.getElementById(`slot-${i}`)
+    if (!slot || !imgEl) return
 
     imgEl.src     = def.images[pack.rarity] || def.images.common
     imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = def.images.common }
     slot.querySelector('.snippet-btn')?.remove()
 
-    // Badge: mostra "1/5" para raras, "#07" para comuns
+    // Badge: mostra "1/5" apenas para raras numeradas; comuns não exibem nada
     badge.className   = `num-badge ${rCfg.badgeClass}`
     badge.textContent = pack.copyNumber
       ? `${pack.copyNumber}/${pack.totalCopies}`
-      : `#${String(pack.slotNumber).padStart(2, '0')}`
+      : ''
 
     if (rCfg.holoClass) holoEl.classList.add(rCfg.holoClass)
     if (rCfg.glowClass) slot.classList.add(rCfg.glowClass)
@@ -137,6 +140,15 @@ export function showCardsScreen() {
         toggleSnippet(def.snippetUrl, btn)
       })
       slot.appendChild(btn)
+    }
+
+    // Hint de bônus em carta dourada (só se usuário ainda não resgatou)
+    slot.querySelector('.share-bonus-hint')?.remove()
+    if (pack.rarity === 'gold' && !appState.user?.goldShareBonusClaimed) {
+      const hint = document.createElement('span')
+      hint.className   = 'share-bonus-hint'
+      hint.textContent = '🎁 Compartilhe → +1 pack'
+      slot.appendChild(hint)
     }
 
     // Entrada escalonada
@@ -161,6 +173,9 @@ export function restoreDemoCards(packs) {
 
   showCardsScreen()
 }
+
+// ─── Reset do flag de demo (chamado após autenticação bem-sucedida) ───────────
+export function resetDemo() { _isDemo = false }
 
 // ─── Callback de auth após demo ──────────────────────────────────────────────
 // Preenchido pelo main.js para não criar dependência circular

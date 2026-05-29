@@ -31,12 +31,26 @@ async function chooseStickerType(tx) {
 // ─── Status diário de packs do usuário ───────────────────────────────────────
 export async function getPackStatus(userId) {
   const today = dayKey()
-  const [opened, user] = await Promise.all([
-    prisma.packOpen.count({ where: { userId, dayKey: today } }),
+  const [packOpens, user] = await Promise.all([
+    prisma.packOpen.findMany({
+      where: { userId, dayKey: today },
+      include: { stickerInstance: { include: { stickerType: true } } },
+    }),
     prisma.user.findUnique({ where: { id: userId }, select: { goldShareBonusClaimed: true } }),
   ])
+  const opened = packOpens.length
   const missionBonus = user?.goldShareBonusClaimed ? 1 : 0
   const totalAllowed = config.baseDailyPacks + missionBonus
+
+  const todayCards = packOpens.map(po => ({
+    id:          po.stickerInstance.id,
+    slotNumber:  po.stickerInstance.stickerType.slotNumber,
+    artistName:  po.stickerInstance.stickerType.artistName,
+    rarity:      po.stickerInstance.rarity,
+    copyNumber:  po.stickerInstance.copyNumber,
+    totalCopies: po.stickerInstance.totalCopies,
+  }))
+
   return {
     dayKey: today,
     baseDaily: config.baseDailyPacks,
@@ -44,6 +58,7 @@ export async function getPackStatus(userId) {
     opened,
     available: Math.max(0, totalAllowed - opened),
     totalAllowed,
+    todayCards,
   }
 }
 
@@ -172,15 +187,21 @@ async function _buildInstance(tx, userId, stickerTypeId, rarity, packDayKey) {
 }
 
 // ─── Missão: compartilhar carta dourada → +1 pack bônus ──────────────────────
-export async function registerGoldShareAndBonus(userId, stickerInstanceId) {
+// Aceita slotNumber (sempre disponível no frontend) — busca a instância gold do usuário
+export async function registerGoldShareAndBonus(userId, slotNumber) {
+  const stickerType = await prisma.stickerType.findUnique({ where: { slotNumber } })
+  if (!stickerType) return { error: 'sticker_not_found' }
+
   const [instance, user] = await Promise.all([
-    prisma.stickerInstance.findFirst({ where: { id: stickerInstanceId, ownerId: userId } }),
+    prisma.stickerInstance.findFirst({
+      where: { ownerId: userId, stickerTypeId: stickerType.id, rarity: RARITY.GOLD },
+      orderBy: { receivedAt: 'desc' },
+    }),
     prisma.user.findUnique({ where: { id: userId }, select: { goldShareBonusClaimed: true } }),
   ])
 
-  if (!instance)                       return { error: 'sticker_not_found' }
-  if (instance.rarity !== RARITY.GOLD) return { error: 'only_gold_gives_bonus' }
-  if (!user)                           return { error: 'user_not_found' }
+  if (!instance) return { error: 'sticker_not_found' }
+  if (!user)     return { error: 'user_not_found' }
 
   const today = dayKey()
   try {
@@ -195,7 +216,7 @@ export async function registerGoldShareAndBonus(userId, stickerInstanceId) {
             userId,
             mission: MISSION.SHARE_GOLD,
             dayKey: today,
-            metadata: JSON.stringify({ stickerInstanceId, mode: 'first_gold_share_lifetime' }),
+            metadata: JSON.stringify({ slotNumber, instanceId: instance.id, mode: 'first_gold_share_lifetime' }),
           },
         })
         await tx.user.update({

@@ -23,8 +23,9 @@ async function req(method, path, body) {
     body: body != null ? JSON.stringify(body) : undefined,
   })
 
-  // Token expirado ou inválido → limpa sessão e recarrega
-  if (res.status === 401) {
+  // Token expirado ou inválido em rotas protegidas → limpa sessão e recarrega.
+  // Ignora 401 de /auth/* (credenciais erradas) e /packs/demo (sem token esperado).
+  if (res.status === 401 && !path.startsWith('/auth/') && !path.startsWith('/packs/demo')) {
     clearToken()
     window.location.reload()
     return
@@ -45,4 +46,5 @@ export const api = {
   album:          ()      => req('GET',  '/album'),
   ranking:        ()      => req('GET',  '/ranking'),
   campaignStatus: ()      => req('GET',  '/campaign/status'),
+  shareGold:      (slot)  => req('POST', '/shares/gold', { slotNumber: slot }),
 }

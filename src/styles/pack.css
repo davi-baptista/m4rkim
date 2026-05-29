@@ -242,3 +242,55 @@
   letter-spacing: 2px;
   color: var(--text-dim);
 }
+
+/* ── Indicador flutuante de packs ──────────────────────────────────────────── */
+.pack-indicator {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a259ff 0%, #7c3aed 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.55);
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pack-indicator::before {
+  content: '📦';
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pack-indicator:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.7);
+}
+
+.pack-indicator:active {
+  transform: scale(0.96);
+}
+
+.pack-indicator.hidden {
+  display: none;
+}
+
+@keyframes pack-indicator-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+.pack-indicator:not(.hidden) {
+  animation: pack-indicator-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}

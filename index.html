@@ -47,6 +47,8 @@
       </form>
 
       <p id="auth-error" class="auth-error"></p>
+
+      <button id="btn-auth-back" class="btn-auth-back hidden">← Ver minhas figurinhas</button>
     </div>
   </div>
 
@@ -70,12 +72,7 @@
       </div>
     </div>
 
-    <!-- Mostrado quando os packs do dia já foram abertos -->
-    <div id="pack-exhausted" class="pack-exhausted hidden">
-      <p class="pack-exhausted-title">Você já abriu seus pacotes de hoje</p>
-      <p class="pack-exhausted-sub">Volte amanhã para mais figurinhas ✦</p>
-      <button class="btn-album" id="btn-go-album" style="margin-top:18px">Ver meu álbum</button>
-    </div>
+
   </div>
 
   <!-- ── Cartas reveladas ──────────────────────────────────────────────────── -->
@@ -113,9 +110,78 @@
       <button class="btn-back" id="btn-back-viewer">← Voltar</button>
       <span id="viewer-label"></span>
     </div>
+
+    <!-- Painel exclusivo de cartas douradas -->
+    <div class="viewer-gold-panel hidden" id="viewer-gold-panel">
+
+      <!-- Identidade centralizada — destaque principal -->
+      <div class="vgp-identity">
+        <p class="vgp-label">Carta pertencente a</p>
+        <p class="vgp-owner" id="vgp-owner"></p>
+        <p class="vgp-copy"  id="vgp-copy"></p>
+      </div>
+
+      <!-- Player de áudio -->
+      <div class="vgp-audio hidden" id="vgp-audio">
+        <button class="vgp-audio-btn" id="vgp-audio-btn" title="Ouvir trecho exclusivo">
+          <span class="vgp-audio-icon">▶</span>
+        </button>
+        <div class="vgp-audio-track">
+          <div class="vgp-audio-bar">
+            <div class="vgp-audio-progress" id="vgp-audio-progress"></div>
+          </div>
+          <span class="vgp-audio-label">Trecho exclusivo</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Botões de compartilhamento — lateral direita -->
+    <div class="viewer-share-panel hidden" id="viewer-share-panel">
+      <span class="vsp-bonus-hint hidden" id="vsp-bonus-hint">+1 pack</span>
+      <span class="vsp-label">Compartilhar</span>
+      <button class="vsp-btn vsp-x"    id="vgp-share-x"    title="Compartilhar no X">𝕏</button>
+      <button class="vsp-btn vsp-wa"   id="vgp-share-wa"   title="Compartilhar no WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </button>
+      <button class="vsp-btn vsp-copy" id="vgp-share-copy" title="Copiar link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+      <span class="vsp-copied hidden" id="vsp-copied">✓</span>
+    </div>
+
     <div class="viewer-bottom">
       <p class="viewer-drag-hint">Arraste para girar</p>
     </div>
+  </div>
+
+  <!-- ── Álbum ────────────────────────────────────────────────────────────── -->
+  <div class="screen hidden" id="s-album">
+    <div class="album-header">
+      <button class="album-back" id="btn-back-album">← Voltar</button>
+      <div class="album-title-block">
+        <span class="album-kicker">Álbum M4RKIM 2026</span>
+        <span class="album-progress" id="album-progress">Carregando…</span>
+        <div class="album-progress-bar-wrap">
+          <div class="album-progress-bar" id="album-progress-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div style="width:48px"></div><!-- espaçador para centralizar o título -->
+    </div>
+    <div class="album-grid" id="album-grid"></div>
+  </div>
+
+  <!-- ── Lightbox do álbum ─────────────────────────────────────────────────── -->
+  <div id="album-lightbox" class="album-lightbox hidden">
+    <div class="album-lightbox-card">
+      <img id="album-lb-img" src="" alt="">
+      <div id="album-lb-holo" class="holo"></div>
+      <div class="album-lightbox-info">
+        <span class="album-lightbox-name" id="album-lb-name"></span>
+        <span class="album-lightbox-copy" id="album-lb-copy"></span>
+      </div>
+    </div>
+    <button class="album-lightbox-close" id="album-lb-close">✕</button>
   </div>
 
   <!-- ── Overlay de resgate do demo ───────────────────────────────────────── -->
@@ -130,6 +196,9 @@
       <button class="btn-demo-secondary" id="btn-demo-login">Já tenho conta</button>
     </div>
   </div>
+
+  <!-- ── Indicador flutuante de packs ─────────────────────────────────────── -->
+  <div id="pack-indicator" class="pack-indicator hidden"></div>
 
   <!-- ── Overlays globais ──────────────────────────────────────────────────── -->
   <div id="flash"></div>

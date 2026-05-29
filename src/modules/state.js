@@ -17,6 +17,7 @@ const _state = {
   cardIndex:    0,        // qual carta está em processo (0 ou 1)
   revealed:     [],       // [{ pack, rCfg }] — cartas já reveladas
   pendingCards: [],       // cartas buscadas da API antes da animação iniciar
+  user:         null,     // { id, email, username } — preenchido no boot
 }
 
 export const appState = _state
@@ -35,6 +36,10 @@ export function setCardIndex(i) {
 
 export function setPendingCards(cards) {
   _state.pendingCards = cards
+}
+
+export function setUser(user) {
+  _state.user = user
 }
 
 export function resetState() {

@@ -16,15 +16,19 @@ import './styles/auth.css'
 import './styles/pack.css'
 import './styles/cards.css'
 import './styles/viewer.css'
+import './styles/album.css'
 
 // ─── Módulos ──────────────────────────────────────────────────────────────────
 import { api, getToken, clearToken }                    from './modules/api.js'
+import { setUser }                                      from './modules/state.js'
 import { initAuth }                                     from './modules/authFlow.js'
 import { initPack, setAuthCallback, resetPack }         from './modules/pack.js'
-import { setDemoAuthCallback, restoreDemoCards }        from './modules/cardReveal.js'
-import { openViewer, closeViewer }                      from './modules/viewer3d.js'
-import { show }                                         from './ui/screens.js'
-import { hasPendingDemo, getDemoPacks }                  from './modules/demoFlow.js'
+import { setDemoAuthCallback, restoreDemoCards, resetDemo } from './modules/cardReveal.js'
+import { openViewer, closeViewer, openViewerCard }       from './modules/viewer3d.js'
+import { show, getRouteScreen }                         from './ui/screens.js'
+import { hasPendingDemo, getDemoPacks, showDemoOverlay, hideDemoOverlay } from './modules/demoFlow.js'
+import { openAlbum, initAlbumListeners }                                 from './modules/album.js'
+import { initPackIndicator, refreshPackIndicator }                        from './modules/packIndicator.js'
 
 // ─── Listeners do viewer — registrados uma única vez ─────────────────────────
 // (evita duplicatas quando _startPackFlow é chamado mais de uma vez)
@@ -46,25 +50,68 @@ async function boot() {
   if (getToken()) {
     const user = await api.me().catch(() => null)
     if (!user || user.error) clearToken()
+    else setUser(user)
   }
 
   // Registra callbacks e listeners globais
-  setDemoAuthCallback(_goToAuth)
+  setDemoAuthCallback(_goToAuthFromDemo)
   setAuthCallback(_goToAuth)
   _initViewerListeners()
+  _initAlbumListeners()
 
-  // Visitante sem conta mas com pack demo pendente:
-  // mostra as cartas que ele já tirou + overlay com countdown
-  if (!getToken() && hasPendingDemo()) {
-    const packs = getDemoPacks()
-    if (packs?.length) {
-      restoreDemoCards(packs)
+  // Lê o path ANTES de qualquer navegação (o pack flow pode sobrescrevê-lo)
+  // Links de carta (/carta/...) são acessíveis mesmo sem login — visitante vê a carta de outra pessoa
+  const savedScreen = getRouteScreen()
+
+  // Link compartilhado de carta (#card/...) sem login: pula o fluxo normal
+  // O viewer vai abrir logo abaixo com os dados do hash
+  const isSharedCardLink = savedScreen?.type === 'card' && !getToken()
+
+  if (!isSharedCardLink) {
+    // Visitante sem conta mas com pack demo pendente:
+    // mostra as cartas que ele já tirou + overlay com countdown
+    if (!getToken() && hasPendingDemo()) {
+      const packs = getDemoPacks()
+      if (packs?.length) {
+        restoreDemoCards(packs)
+      } else {
+        _startPackFlow()
+      }
     } else {
-      _startPackFlow()   // token expirado mas packs não encontrados: começa do zero
+      await _startPackFlow()
     }
-  } else {
-    _startPackFlow()
   }
+
+  // Restaura a tela que estava aberta antes do F5, ou abre link compartilhado
+  if (savedScreen === 's-album' && getToken()) {
+    openAlbum('s-cards')
+  } else if (savedScreen?.type === 'card') {
+    const { CARDS_DB, RARITY } = await import('./config/cards.js')
+    const { slotNumber, rarity } = savedScreen
+    const def  = CARDS_DB[slotNumber]
+    const rCfg = RARITY[rarity]
+    if (def && rCfg) {
+      // Dados de identidade: o hash já carrega ownerUsername/copyNumber/totalCopies
+      // Se vier do próprio F5 (usuário logado, hash sem owner), tenta completar via álbum
+      let { ownerUsername, copyNumber, totalCopies } = savedScreen
+      if (!ownerUsername && getToken()) {
+        try {
+          const albumData = await api.album()
+          const slot = albumData?.slots?.find(s => s.slotNumber === slotNumber)
+          if (slot?.sticker?.rarity === rarity) {
+            copyNumber  = slot.sticker.copyNumber  ?? null
+            totalCopies = slot.sticker.totalCopies ?? null
+          }
+        } catch (_) { /* ignora — abre sem numeração */ }
+      }
+      // backScreen: se logado vai pro álbum/cards, se anônimo vai pro início
+      const backScreen = getToken() ? 's-album' : 's-pack'
+      openViewerCard({ slotNumber, rarity, ownerUsername, copyNumber, totalCopies }, rCfg, backScreen)
+    }
+  }
+
+  // Indicador flutuante de packs (só aparece para usuários logados)
+  initPackIndicator()
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -73,23 +120,65 @@ async function boot() {
   })
 }
 
+// ─── Listeners do álbum — registrados uma única vez ──────────────────────────
+let _albumReady = false
+function _initAlbumListeners() {
+  if (_albumReady) return
+  _albumReady = true
+  initAlbumListeners()
+  // Botões "Ver meu álbum" em s-cards
+  document.querySelectorAll('.btn-album').forEach(btn => {
+    btn.addEventListener('click', () => openAlbum('s-cards'))
+  })
+}
+
 // ─── Inicia o fluxo de pack ───────────────────────────────────────────────────
-function _startPackFlow() {
+async function _startPackFlow() {
   show('s-pack')
-  initPack()
+  await initPack()
 }
 
 // ─── Vai para a tela de auth ──────────────────────────────────────────────────
 // tab: 'login' | 'register'
-function _goToAuth(tab = 'login') {
+// fromDemo: true quando chamado a partir do overlay de demo
+function _goToAuth(tab = 'login', fromDemo = false) {
   show('s-auth')
-  initAuth(_onAuthSuccess, tab)
+
+  const onSuccess = fromDemo ? _onDemoAuthSuccess : _onAuthSuccess
+  initAuth(onSuccess, tab)
+
+  const btnBack = document.getElementById('btn-auth-back')
+  if (fromDemo && hasPendingDemo()) {
+    btnBack.classList.remove('hidden')
+    btnBack.onclick = () => {
+      btnBack.classList.add('hidden')
+      show('s-cards')
+      showDemoOverlay(_goToAuthFromDemo)
+    }
+  } else {
+    btnBack.classList.add('hidden')
+  }
 }
 
-// ─── Após autenticação bem-sucedida ──────────────────────────────────────────
-function _onAuthSuccess() {
-  resetPack()   // limpa flags para reiniciar o fluxo como usuário autenticado
+function _goToAuthFromDemo(tab) { _goToAuth(tab, true) }
+
+// ─── Após autenticação normal ─────────────────────────────────────────────────
+function _onAuthSuccess(user) {
+  setUser(user)
+  resetPack()
   _startPackFlow()
+  refreshPackIndicator()
+}
+
+// ─── Após autenticação vinda do demo ─────────────────────────────────────────
+// Mostra as figurinhas que o usuário acabou de ganhar, sem o overlay.
+// O footer passa a ter um botão para ir ao pack (que estará esgotado hoje).
+function _onDemoAuthSuccess(user) {
+  setUser(user)
+  resetDemo()
+  hideDemoOverlay()
+  document.getElementById('btn-auth-back').classList.add('hidden')
+  show('s-cards')
 }
 
 boot()

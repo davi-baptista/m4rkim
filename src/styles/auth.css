@@ -244,6 +244,22 @@
   border-color: rgba(255, 255, 255, 0.18);
 }
 
+/* ─── Botão voltar para as figurinhas ────────────────────────────────────── */
+.btn-auth-back {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color var(--t-fast);
+}
+
+.btn-auth-back:hover { color: var(--text); }
+.btn-auth-back.hidden { display: none; }
+
 /* ─── Responsivo ──────────────────────────────────────────────────────────── */
 @media (max-width: 420px) {
   .auth-card {

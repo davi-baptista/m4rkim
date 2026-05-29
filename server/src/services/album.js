@@ -43,6 +43,31 @@ export async function getUserAlbum(userId) {
   }
 }
 
+// ─── Dados públicos de uma carta para og:tags ─────────────────────────────────
+// Usada pela rota /carta/:username/:rarity/:slot para gerar o preview social
+export async function getPublicCardInfo(username, slotNumber, rarity) {
+  const user = await prisma.user.findUnique({ where: { username } })
+  if (!user) return null
+
+  const type = await prisma.stickerType.findUnique({ where: { slotNumber } })
+  if (!type) return null
+
+  const instance = await prisma.stickerInstance.findFirst({
+    where: { ownerId: user.id, stickerTypeId: type.id, rarity },
+    orderBy: { receivedAt: 'desc' },
+  })
+  if (!instance) return null
+
+  return {
+    username: user.username,
+    artistName: type.artistName,
+    rarity,
+    slotNumber,
+    copyNumber:  instance.copyNumber,
+    totalCopies: instance.totalCopies,
+  }
+}
+
 // ─── Ranking público (top 50) ─────────────────────────────────────────────────
 // Ordena por slots únicos preenchidos. Não expõe emails.
 export async function getRanking() {

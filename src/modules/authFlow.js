@@ -17,8 +17,16 @@ const ERRORS = {
   network_error:                  'Sem conexão com o servidor.',
 }
 
+// Cancela listeners de chamadas anteriores de initAuth
+let _authController = null
+
 // initialTab: 'login' | 'register' — define qual aba abre primeiro
 export function initAuth(onSuccess, initialTab = 'login') {
+  // Remove todos os listeners da chamada anterior
+  if (_authController) _authController.abort()
+  _authController = new AbortController()
+  const { signal } = _authController
+
   const tabBtns      = document.querySelectorAll('.auth-tab')
   const formLogin    = document.getElementById('form-login')
   const formRegister = document.getElementById('form-register')
@@ -32,7 +40,7 @@ export function initAuth(onSuccess, initialTab = 'login') {
     btn.addEventListener('click', () => {
       errorEl.textContent = ''
       _switchTab(tabBtns, formLogin, formRegister, btn.dataset.tab)
-    })
+    }, { signal })
   })
 
   // ── Login ───────────────────────────────────────────────────────────────────
@@ -63,7 +71,7 @@ export function initAuth(onSuccess, initialTab = 'login') {
 
     hideDemoOverlay()
     onSuccess(result.user)
-  })
+  }, { signal })
 
   // ── Cadastro ────────────────────────────────────────────────────────────────
   formRegister.addEventListener('submit', async e => {
@@ -87,7 +95,7 @@ export function initAuth(onSuccess, initialTab = 'login') {
     setToken(result.token)
     hideDemoOverlay()
     onSuccess(result.user)
-  })
+  }, { signal })
 }
 
 function _switchTab(tabBtns, formLogin, formRegister, tab) {

@@ -12,7 +12,10 @@
     "db:generate":"prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push":    "prisma db push",
-    "db:seed":    "node prisma/seed.js"
+    "db:seed":    "node prisma/seed.js",
+    "dev:gold":         "node scripts/give-gold.js",
+    "dev:silver":       "node scripts/give-silver.js",
+    "dev:reset-bonus":  "node scripts/reset-share-bonus.js"
   },
   "dependencies": {
     "@prisma/client": "^5.16.2",

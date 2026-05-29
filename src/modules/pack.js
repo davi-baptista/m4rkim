@@ -12,7 +12,7 @@
  */
 
 import { setState, setPendingCards, STATE, appState } from './state.js'
-import { startCard }                                   from './cardReveal.js'
+import { startCard, showCardsScreen }                  from './cardReveal.js'
 import { api, getToken }                               from './api.js'
 import { saveDemoResult }                               from './demoFlow.js'
 import { show }                                        from '../ui/screens.js'
@@ -35,16 +35,20 @@ export async function initPack() {
   _initialized = true
 
   document.getElementById('pack-body').addEventListener('click', _handleTap)
-  document.getElementById('btn-go-album')?.addEventListener('click', () => {
-    // TODO: navegar para a tela de álbum quando estiver pronta
-    console.log('[pack] navegar para álbum')
-  })
 
-  // Se o usuário já abriu todos os packs de hoje, mostra o estado esgotado imediatamente
-  // sem esperar o próximo clique (evita que o pack pareça disponível quando não está)
+  // Se o usuário já abriu todos os packs de hoje, vai direto para s-cards com as cartas de hoje
   if (getToken()) {
     const status = await api.packStatus().catch(() => null)
-    if (status?.available === 0) _showExhausted()
+    if (status?.available === 0 && status.todayCards?.length) {
+      const { RARITY } = await import('../config/cards.js')
+      setPendingCards(status.todayCards)
+      appState.revealed = status.todayCards.map(pack => ({
+        pack,
+        rCfg: RARITY[pack.rarity] ?? RARITY.common,
+      }))
+      setState(STATE.FINISHED)
+      showCardsScreen()
+    }
   }
 }
 
@@ -69,7 +73,6 @@ async function _openAuthenticated() {
   const status = await api.packStatus()
 
   if (status.available === 0) {
-    _showExhausted()
     _opening = false
     return
   }
@@ -91,6 +94,7 @@ async function _openAuthenticated() {
   }
 
   setPendingCards(cards)
+  import('./packIndicator.js').then(m => m.refreshPackIndicator())
   _startAnimation()
 }
 
@@ -117,7 +121,3 @@ function _startAnimation(isDemo = false) {
   setTimeout(() => startCard(0, isDemo), 820)
 }
 
-function _showExhausted() {
-  document.getElementById('pack-scene').classList.add('hidden')
-  document.getElementById('pack-exhausted').classList.remove('hidden')
-}

@@ -7,7 +7,7 @@
 export const CARDS_DB = {
   1: {
     artistName: 'M4RKIM',
-    subtitle:   'Cantor / Compositor',
+    subtitle:   'Cantor',
     images: {
       common: '/cards/01.png',
       silver: '/cards/01-prata.png',
@@ -17,7 +17,7 @@ export const CARDS_DB = {
   },
   2: {
     artistName: 'Itoshi Sae',
-    subtitle:   'Personagem / Blue Lock',
+    subtitle:   'Personagem',
     images: {
       common: '/cards/02.png',
       silver: null,   // sem versão prata
@@ -34,6 +34,16 @@ export const CARDS_DB = {
       gold:   null,   // sem versão dourada
     },
     snippetUrl: null,
+  },
+  4: {
+    artistName: 'ÉODAN',
+    subtitle:   'Cantor',
+    images: {
+      common: '/cards/04.png',
+      silver: '/cards/04-prata.png',
+      gold:   '/cards/04-dourada.png',
+    },
+    snippetUrl: null, // ex: '/audio/01-snippet.mp3' — adicionar quando disponível
   },
 }
 

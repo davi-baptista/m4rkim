@@ -77,8 +77,8 @@ export function showDemoOverlay(onGoToAuth) {
   tick()
   _timerInterval = setInterval(tick, 1_000)
 
-  btnReg.onclick   = () => { clearInterval(_timerInterval); onGoToAuth('register') }
-  btnLogin.onclick = () => { clearInterval(_timerInterval); onGoToAuth('login') }
+  btnReg.onclick   = () => { hideDemoOverlay(); onGoToAuth('register') }
+  btnLogin.onclick = () => { hideDemoOverlay(); onGoToAuth('login') }
 }
 
 export function hideDemoOverlay() {

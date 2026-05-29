@@ -9,7 +9,7 @@ import { requireAuth } from './auth.js'
 import { registerUser, loginUser, getMe } from './services/auth.js'
 import { openDemoPack, claimDemoPack }    from './services/demo.js'
 import { getPackStatus, openPack, registerGoldShareAndBonus } from './services/packs.js'
-import { getUserAlbum, getRanking } from './services/album.js'
+import { getUserAlbum, getRanking, getPublicCardInfo } from './services/album.js'
 import { getCampaignStatus, createPrizeClaimRequest } from './services/campaign.js'
 
 export const router = express.Router()
@@ -86,11 +86,11 @@ router.post('/packs/open', requireAuth, wrap(async (req, res) => {
 
 // ─── Compartilhamento ─────────────────────────────────────────────────────────
 router.post('/shares/gold', requireAuth, wrap(async (req, res) => {
-  const schema = z.object({ stickerInstanceId: z.string().min(1) })
+  const schema = z.object({ slotNumber: z.number().int().positive() })
   const parsed = schema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'invalid_body' })
 
-  const result = await registerGoldShareAndBonus(req.user.sub, parsed.data.stickerInstanceId)
+  const result = await registerGoldShareAndBonus(req.user.sub, parsed.data.slotNumber)
   if (result.error) return res.status(400).json(result)
   return res.json(result)
 }))

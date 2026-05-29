@@ -15,6 +15,52 @@
   top: 0 !important;
 }
 
+/* ─── Aura de raridade — sobreposta ao canvas via ::after + screen blend ────── */
+/* O ::before fica atrás do canvas (invisível). O ::after fica na frente         */
+/* com mix-blend-mode: screen, somando luz ao render 3D sem bloquear interação.  */
+#s-viewer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.5s ease;
+}
+
+#s-viewer.aura-gold::after {
+  background: radial-gradient(ellipse 60% 90% at 50% -5%,
+    rgba(255, 210, 60,  0.38) 0%,
+    rgba(245, 158, 11, 0.20) 35%,
+    rgba(180, 90,  5,  0.07) 65%,
+    transparent 100%
+  );
+  opacity: 1;
+  animation: auraPulseGold 2.6s ease-in-out infinite;
+}
+
+#s-viewer.aura-silver::after {
+  background: radial-gradient(ellipse 60% 90% at 50% -5%,
+    rgba(210, 235, 255, 0.65) 0%,
+    rgba(147, 197, 253, 0.32) 35%,
+    rgba(90,  130, 210, 0.10) 65%,
+    transparent 100%
+  );
+  opacity: 1;
+  animation: auraPulseSilver 3.2s ease-in-out infinite;
+}
+
+@keyframes auraPulseGold {
+  0%, 100% { opacity: 0.80; }
+  50%       { opacity: 1.00; }
+}
+
+@keyframes auraPulseSilver {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 0.95; }
+}
+
 /* ─── Canvas Three.js (ocupa tela toda) ───────────────────────────────────── */
 #three-canvas {
   position: absolute;
@@ -72,6 +118,263 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ─── Painel dourado + share — visibilidade ───────────────────────────────── */
+.viewer-gold-panel.hidden,
+.viewer-share-panel.hidden,
+.vgp-audio.hidden,
+.vgp-owner.hidden,
+.vgp-copy.hidden,
+.vsp-copied.hidden { display: none; }
+
+/* ─── Painel de identidade — centralizado na base ─────────────────────────── */
+.viewer-gold-panel {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(88vw, 300px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  padding: 14px 18px 12px;
+  border-radius: 14px;
+  background: rgba(6, 4, 14, 0.78);
+  border: 1px solid rgba(245, 158, 11, 0.16);
+  backdrop-filter: blur(18px);
+  text-align: center;
+  animation: vgpIn 0.4s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+}
+
+@keyframes vgpIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(18px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Identidade */
+.vgp-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.vgp-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(245, 158, 11, 0.45);
+}
+
+.vgp-owner {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(241, 245, 249, 0.90);
+}
+
+.vgp-copy {
+  line-height: 1;
+}
+
+.vgp-num {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold);
+}
+
+/* Player de áudio */
+.vgp-audio {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.14);
+}
+
+.vgp-audio-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--gold);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--t-fast), transform var(--t-fast);
+}
+
+.vgp-audio-btn:hover   { background: rgba(245, 158, 11, 0.22); transform: scale(1.08); }
+.vgp-audio-btn.playing { background: rgba(245, 158, 11, 0.28); animation: snippetPulse 1.1s ease-in-out infinite; }
+
+.vgp-audio-track { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+
+.vgp-audio-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.10);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.vgp-audio-progress {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--gold), #fbbf24);
+  border-radius: 2px;
+  transition: width 0.25s linear;
+}
+
+.vgp-audio-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(245, 158, 11, 0.50);
+}
+
+/* ─── Painel de compartilhamento — lateral direita ────────────────────────── */
+.viewer-share-panel {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  animation: vspIn 0.4s cubic-bezier(0.34, 1.3, 0.64, 1) 0.1s both;
+}
+
+@keyframes vspIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(14px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+.vsp-bonus-hint {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.30);
+  border-radius: 20px;
+  padding: 8px 5px;
+  animation: hintPulse 2s ease-in-out infinite;
+}
+
+.vsp-bonus-hint.hidden { display: none; }
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1;   }
+}
+
+.vsp-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(241, 245, 249, 0.28);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  margin-bottom: 2px;
+}
+
+.vsp-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(8, 6, 18, 0.75);
+  color: rgba(241, 245, 249, 0.65);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  transition: background var(--t-fast), border-color var(--t-fast),
+              color var(--t-fast), transform var(--t-fast);
+}
+
+.vsp-btn:hover         { transform: scale(1.10); }
+.vsp-x:hover           { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.22); color: #fff; }
+.vsp-wa                { border-color: rgba(37, 211, 102, 0.25); color: #4ade80; }
+.vsp-wa:hover          { background: rgba(37, 211, 102, 0.12); border-color: rgba(37, 211, 102, 0.45); }
+.vsp-copy              { border-color: rgba(245, 158, 11, 0.22); color: rgba(245, 158, 11, 0.70); }
+.vsp-copy:hover        { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.40); color: var(--gold); }
+
+.vsp-copied {
+  font-size: 14px;
+  color: var(--gold);
+  animation: vspCopied 0.3s ease forwards;
+}
+
+@keyframes vspCopied {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .viewer-gold-panel { bottom: 48px; padding: 14px 16px 12px; }
+  .vgp-num  { font-size: 26px; }
+  .vgp-owner { font-size: 18px; }
+  .viewer-share-panel { right: 12px; gap: 8px; }
+  .vsp-btn  { width: 38px; height: 38px; }
+}
+
+/* ─── Toast de bônus ──────────────────────────────────────────────────────── */
+#bonus-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 12px 22px;
+  border-radius: 30px;
+  background: rgba(6, 4, 14, 0.90);
+  border: 1px solid rgba(245, 158, 11, 0.40);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(16px);
+  white-space: nowrap;
+}
+
+#bonus-toast.bonus-toast-show {
+  animation: bonusToastIn 0.4s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+}
+
+#bonus-toast.bonus-toast-hide {
+  animation: bonusToastOut 0.4s ease forwards;
+}
+
+@keyframes bonusToastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes bonusToastOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
 
 /* ─── Rodapé do viewer ────────────────────────────────────────────────────── */

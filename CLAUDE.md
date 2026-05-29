@@ -1,5 +1,46 @@
 # Projeto: Álbum de Figurinhas — Site de Lançamento Musical
 
+---
+
+## ⚠️⚠️⚠️ ATENÇÃO — OBRIGATÓRIO ANTES DO DEPLOY ⚠️⚠️⚠️
+
+### RATE LIMITING ESTÁ DESATIVADO EM DESENVOLVIMENTO
+
+O rate limiting foi desativado durante o desenvolvimento para não atrapalhar os testes.
+**ANTES DE SUBIR PARA PRODUÇÃO**, é obrigatório reativar em `server/src/index.js`:
+
+```js
+// MUDAR ISSO:
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api/auth',       authLimiter)
+  app.use('/api/packs/demo', demoLimiter)
+  app.use('/api/packs',      packLimiter)
+}
+
+// PARA ISSO (remover o if, deixar sempre ativo):
+app.use('/api/auth',       authLimiter)
+app.use('/api/packs/demo', demoLimiter)
+app.use('/api/packs',      packLimiter)
+```
+
+Sem isso, o site fica vulnerável a brute force, spam de demo packs e flood de requisições.
+
+### GERAR OG:IMAGE PARA LINKS DE CARTA (a fazer)
+
+A rota `/carta/:username/:rarity/:slot` já injeta `og:title` e `og:description` no HTML em produção.
+O próximo passo é adicionar **og:image dinâmica** para que o X (Twitter) e WhatsApp mostrem uma imagem da carta no preview.
+
+**Como implementar:**
+- Usar `sharp` (npm) ou `@resvg/resvg-js` no servidor para compor uma imagem PNG a partir:
+  - da arte da carta (`/cards/slot_X_gold.png`)
+  - do username e número da cópia sobrepostos em texto
+- Expor via `GET /og-image/carta/:username/:rarity/:slot` → retorna `image/png`
+- Adicionar `<meta property="og:image" content="https://seusite.com/og-image/carta/...">` na rota `/carta/...`
+
+O X exige que `og:image` seja servido via HTTPS e tenha no mínimo 300×157px.
+
+---
+
 ## Visão Geral
 
 Site de marketing para divulgar uma música nova, usando a mecânica de álbum de figurinhas da Copa do Mundo como engajamento e viral. Os usuários abrem pacotes diários, colecionam figurinhas, e **quem completar o álbum primeiro ganha R$500**. A campanha dura ~13–15 dias com o lançamento da música previsto para o dia 7.
